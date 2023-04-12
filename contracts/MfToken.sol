@@ -47,9 +47,8 @@ contract MfToken is ERC20Interface {
     constructor(uint256 initialSupply) {
         name = "MfToken";
         symbol = "MFT";
-        totalSupply = initialSupply;
         decimals = 8;
-        balances[msg.sender] = initialSupply;
+        _mint(msg.sender, initialSupply);
         owner = msg.sender;
     }
 
@@ -107,9 +106,7 @@ contract MfToken is ERC20Interface {
     function mint(address _to, uint256 _amount) external {
         require(msg.sender == owner);
         require(totalSupply + _amount >= totalSupply);
-        totalSupply += _amount;
-        balances[_to] += _amount;
-        emit Transfer(address(0), _to, _amount);
+        _mint(_to, _amount);
     }
 
     function burn(uint256 _amount) external {
@@ -126,5 +123,12 @@ contract MfToken is ERC20Interface {
         balances[_from] -= _value;
         balances[_to] += _value;
         emit Transfer(_from, _to, _value);
+    }
+
+    function _mint(address _to, uint256 _amount) internal {
+        require(_to != address(0));
+        totalSupply += _amount;
+        balances[_to] += _amount;
+        emit Transfer(address(0), _to, _amount);
     }
 }
