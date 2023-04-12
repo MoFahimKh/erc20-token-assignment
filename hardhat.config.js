@@ -1,16 +1,20 @@
+/** @type import('hardhat/config').HardhatUserConfig */
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
-/** @type import('hardhat/config').HardhatUserConfig */
 const { PRIVATE_KEY, API_KEY } = process.env;
+if (!PRIVATE_KEY || !API_KEY) {
+  throw new Error("Please define PRIVATE_KEY and API_KEY in your .env file");
+}
 
 module.exports = {
   solidity: "0.8.18",
+  defaultNetwork: "sepolia",
   networks: {
-    goerli: {
-      url: `http://goerli.infura.io/v3/${API_KEY}`,
-      accounts: ['5d4b74406a2f51fb75f66a26ae3cb27a2d8fcd2dc14c25ca6884002796b46b01'],
+    hardhat: {},
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${API_KEY}`,
+      accounts: [PRIVATE_KEY],
     },
   },
- 
 };
