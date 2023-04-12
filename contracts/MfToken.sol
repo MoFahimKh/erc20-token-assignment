@@ -69,14 +69,31 @@ contract MfToken is ERC20Interface {
         return balances[_owner];
     }
 
+    // this internal function is to handle common logic between transfer and transferFrom
+    function _transfer(address _from, address _to, uint256 _value) internal {
+        require(_to != address(0));
+        require(balances[_from] >= _value && _value > 0);
+        balances[_from] -= _value;
+        balances[_to] += _value;
+        emit Transfer(_from, _to, _value);
+    }
+
     function transfer(
         address _to,
         uint256 _value
     ) external returns (bool success) {
-        require(balances[msg.sender] >= _value && _value > 0);
-        balances[msg.sender] -= _value;
-        balances[_to] += _value;
-        emit Transfer(msg.sender, _to, _value);
+        _transfer(msg.sender, _to, _value);
+        return true;
+    }
+
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) external returns (bool success) {
+        require(allowed[_from][msg.sender] >= _value && _value > 0);
+        allowed[_from][msg.sender] -= _value;
+        _transfer(_from, _to, _value);
         return true;
     }
 
@@ -94,23 +111,6 @@ contract MfToken is ERC20Interface {
         address _spender
     ) external view returns (uint256) {
         return allowed[_owner][_spender];
-    }
-
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _value
-    ) external returns (bool success) {
-        require(
-            balances[_from] >= _value &&
-                allowed[_from][msg.sender] >= _value &&
-                _value > 0
-        );
-        balances[_from] -= _value;
-        allowed[_from][msg.sender] -= _value;
-        balances[_to] += _value;
-        emit Transfer(_from, _to, _value);
-        return true;
     }
 
     function mint(address _to, uint256 _amount) external {
