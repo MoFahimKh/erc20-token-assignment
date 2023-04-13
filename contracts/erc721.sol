@@ -143,7 +143,7 @@ contract MfNft is ERC721Interface {
         emit Transfer(from, to, tokenId);
     }
 
-    function approve(address to, uint256 tokenId) public {
+    function approve(address to, uint256 tokenId) external {
         address owner = ownerOf(tokenId);
         require(to != owner, "MfNft: approval to current owner");
         require(
