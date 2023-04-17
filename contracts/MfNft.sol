@@ -101,10 +101,6 @@ contract MfNft is ERC721Interface {
         bytes memory data
     ) public {
         transferFrom(from, to, tokenId);
-        require(
-            _checkOnERC721Received(from, to, tokenId, data) == true,
-            "MfNft: transfer to non ERC721Receiver implementer"
-        );
     }
 
     function safeTransferFrom(
@@ -196,11 +192,5 @@ contract MfNft is ERC721Interface {
         }
     }
 
-    //function implementation is left
-    function _checkOnERC721Received(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory data
-    ) internal returns (bool) {}
+   
 }
