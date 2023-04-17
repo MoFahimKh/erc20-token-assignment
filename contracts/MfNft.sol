@@ -1,6 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
+interface IERC721Receiver {
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes memory data
+    ) external returns (bytes4);
+}
+
 interface ERC721Interface {
     function balanceOf(address owner) external view returns (uint256 balance);
 
@@ -39,6 +48,7 @@ contract MfNft is ERC721Interface {
     string private _name;
     string private _symbol;
     uint256 private _totalSupply;
+    // uint256 private _tokenID;
     mapping(uint256 => address) private _owners;
     mapping(address => uint256) private _balances;
     mapping(uint256 => address) private _tokenApprovals;
@@ -77,7 +87,7 @@ contract MfNft is ERC721Interface {
         return _totalSupply;
     }
 
-    function balanceOf(address owner) external view returns (uint256) {
+    function balanceOf(address owner) external view override returns (uint256) {
         require(
             owner != address(0),
             "MfNft: balance query for the zero address"
@@ -85,13 +95,27 @@ contract MfNft is ERC721Interface {
         return _balances[owner];
     }
 
-    function ownerOf(uint256 tokenId) public view returns (address) {
+    function ownerOf(uint256 tokenId) public view override returns (address) {
         address owner = _owners[tokenId];
         require(
-            owner != address(0),
+            owner == address(0) || owner == _owners[tokenId],
             "MfNft: owner query for nonexistent token"
         );
         return owner;
+    }
+
+    function mint(address to, uint256 tokenId) external {
+        require(to != address(0), "MfNft: cannot mint a NFT for zero address");
+        require(!_exists(tokenId), "MfNft: tokenID already exists");
+        _owners[tokenId] = to;
+        _mint(to, tokenId);
+    }
+
+    function _mint(address _to, uint256 _amount) internal {
+        //require(_to != address(0));
+        _totalSupply += 1;
+        _balances[_to] += 1;
+        emit Transfer(address(0), _to, _amount);
     }
 
     function safeTransferFrom(
@@ -101,6 +125,10 @@ contract MfNft is ERC721Interface {
         bytes memory data
     ) public {
         transferFrom(from, to, tokenId);
+        require(
+            _checkOnERC721Received(from, to, tokenId, data),
+            "MfNft : transfer to non ERC721Receiver implementer"
+        );
     }
 
     function safeTransferFrom(
@@ -112,34 +140,24 @@ contract MfNft is ERC721Interface {
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public {
-        // Check if `from` owns the token
         require(
             ownerOf(tokenId) == from,
             "MfNft: transfer of token that is not own"
         );
-
-        // Check if caller is owner or approved
         require(
             _isApprovedOrOwner(msg.sender, tokenId),
             "MfNft: transfer caller is not owner nor approved"
         );
-
-        // Check if `to` is not the zero address
         require(to != address(0), "MfNft: transfer to the zero address");
-
-        // Clear approvals from the previous owner
         _clearApproval(from, tokenId);
-
-        // Update token owner and balance
         _owners[tokenId] = to;
         _balances[from]--;
         _balances[to]++;
 
-        // Emit Transfer event
         emit Transfer(from, to, tokenId);
     }
 
-    function approve(address to, uint256 tokenId) external {
+    function approve(address to, uint256 tokenId) external override {
         address owner = ownerOf(tokenId);
         require(to != owner, "MfNft: approval to current owner");
         require(
@@ -150,13 +168,22 @@ contract MfNft is ERC721Interface {
         emit Approval(owner, to, tokenId);
     }
 
-    function setApprovalForAll(address operator, bool approved) external {
+    function setApprovalForAll(
+        address operator,
+        bool approved
+    ) external override {
         require(operator != msg.sender, "MfNft: invalid operator");
+        require(
+            operator != address(0),
+            "MfNft: address(0) must not be the operator"
+        );
         _operatorApprovals[msg.sender][operator] = approved;
         emit ApprovalForAll(msg.sender, operator, approved);
     }
 
-    function getApproved(uint256 tokenId) public view returns (address) {
+    function getApproved(
+        uint256 tokenId
+    ) public view override returns (address) {
         require(
             _owners[tokenId] != address(0),
             "MfNft: approved query for nonexistent token"
@@ -167,7 +194,7 @@ contract MfNft is ERC721Interface {
     function isApprovedForAll(
         address owner,
         address operator
-    ) public view returns (bool) {
+    ) public view override returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -192,5 +219,37 @@ contract MfNft is ERC721Interface {
         }
     }
 
-   
+    function _exists(uint256 tokenId) internal view virtual returns (bool) {
+        return _owners[tokenId] != address(0x0);
+    }
+
+    function isContract(address addr) internal view returns (bool) {
+        uint256 size;
+        assembly {
+            size := extcodesize(addr)
+        }
+        return size > 0;
+    }
+
+    function _checkOnERC721Received(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) internal returns (bool) {
+        if (isContract(to)) {
+            bytes4 retval = IERC721Receiver(to).onERC721Received(
+                msg.sender,
+                from,
+                tokenId,
+                data
+            );
+            return (retval ==
+                bytes4(
+                    keccak256("onERC721Received(address,adrress,uint256,bytes)")
+                ));
+        } else {
+            return true;
+        }
+    }
 }
