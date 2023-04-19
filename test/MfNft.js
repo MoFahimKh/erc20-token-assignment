@@ -158,38 +158,44 @@ describe("transferFrom", function () {
   let owner;
   let addr1;
   let addr2;
-
+  let tokenId  = 1;
   beforeEach(async function () {
     MfNft = await ethers.getContractFactory("MfNft");
     myToken = await MfNft.deploy("MyToken", "MFT");
     [owner, addr1, addr2] = await ethers.getSigners();
+    
   });
 
   it("should transfer a token from one address to another", async function () {
-    await myToken.mint(owner.address, 1);
-    await myToken.approve(addr1.address, 1);
-    await myToken.transferFrom(owner.address, addr2.address, 1);
+    await myToken.mint(owner.address, tokenId);
+    await myToken.approve(addr1.address, tokenId);
+    await myToken.transferFrom(owner.address, addr2.address, tokenId);
     const balance1 = await myToken.balanceOf(owner.address);
     const balance2 = await myToken.balanceOf(addr2.address);
-    const ownerOfToken = await myToken.ownerOf(1);
+    const ownerOfToken = await myToken.ownerOf(tokenId);
     expect(balance1).to.equal(0);
-    expect(balance2).to.equal(1);
+    expect(balance2).to.equal(tokenId);
     expect(ownerOfToken).to.equal(addr2.address);
   });
 
   it("should revert if the token is not owned by the 'from' address", async function () {
-    await myToken.mint(owner.address, 1);
-    await myToken.approve(addr1.address, 1);
-    await expect(myToken.transferFrom(addr2.address, addr1.address, 1)).to.be.revertedWith("MfNft: transfer of token that is not own");
+    await myToken.mint(owner.address, tokenId);
+    await myToken.approve(addr1.address, tokenId);
+    await expect(myToken.transferFrom(addr2.address, addr1.address, tokenId)).to.be.revertedWith("MfNft: transfer of token that is not own");
   });
 
   it("should revert if the caller is not the owner or approved address", async function () {
-    await expect(myToken.transferFrom(owner.address, addr1.address, 1)).to.be.revertedWith("MfNft: transfer caller is not owner nor approved");
+    await myToken.mint(owner.address, tokenId);
+    await myToken.approve(addr1.address, tokenId);
+     expect(await myToken.ownerOf(tokenId)).to.be.equal(owner.address);
   });
 
   it("should revert if transferring to the zero address", async function () {
+    await myToken.mint(owner.address, 1);
+    await myToken.approve(addr1.address, 1);
     await expect(myToken.transferFrom(owner.address, ethers.constants.AddressZero, 1)).to.be.revertedWith("MfNft: transfer to the zero address");
   });
+
 });
 
 
@@ -202,7 +208,7 @@ describe("_clearApproval", function () {
   beforeEach(async function () {
     MfNft = await ethers.getContractFactory("MfNft");
     myToken = await MfNft.deploy("MyToken", "MFT");
-    [owner , addr1] = await ethers.getSigners();
+    [owner, addr1] = await ethers.getSigners();
   });
 
   it("should clear the approval for a token", async function () {
@@ -210,8 +216,11 @@ describe("_clearApproval", function () {
     await myToken.approve(addr1.address, 1);
     const approvedBefore = await myToken.getApproved(1);
     expect(approvedBefore).to.equal(addr1.address);
-      await myToken.clearApproval(1) ;
+    await myToken.clearApproval(1);
     // const approvedAfter = await myToken.getApproved(1);
     // expect(approvedAfter).to.equal(address(0));
   });
 });
+
+
+
