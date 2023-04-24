@@ -22,7 +22,7 @@ contract myERC1155 {
     mapping(uint256 => uint256) public totalSupply;
 
     string private name;
-    string public symbol;
+    string private symbol;
     address public owner;
     uint256 public nextTokenIdToMint;
 
@@ -225,10 +225,6 @@ contract myERC1155 {
         require(msg.sender == owner, "Only owner can mint tokens");
         require(_to != address(0), "Cannot mint to zero address");
         require(_amount > 0, "Cannot mint zero amount of tokens");
-        require(
-            _tokenId >= nextTokenIdToMint,
-            "Token ID must be greater than or equal to nextTokenIdToMint"
-        );
 
         _balances[_tokenId][_to] += _amount;
         totalSupply[_tokenId] += _amount;
