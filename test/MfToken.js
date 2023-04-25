@@ -30,7 +30,7 @@ describe("MfToken", function () {
     });
 
     it("should set the correct total supply", async () => {
-      expect(await hardhatToken.getTotalSupply()).to.equal(initialSupply);
+      expect(await hardhatToken.totalSupply()).to.equal(initialSupply);
     });
 
 
@@ -73,7 +73,7 @@ describe("MfToken", function () {
         const [owner, other] = await ethers.getSigners();
         const amount = 1000;
         await hardhatToken.connect(owner).mint(other.address, amount);
-        const newTotalSupply = await hardhatToken.getTotalSupply();
+        const newTotalSupply = await hardhatToken.totalSupply();
         expect(newTotalSupply).to.equal(initialSupply.add(amount));
         const recipientBalance = await hardhatToken.balanceOf(other.address);
         expect(recipientBalance).to.equal(amount);
@@ -178,34 +178,3 @@ describe("allowance", function () {
     expect(allowance).to.equal(1000);
   });
 });
-
-
-//   let MfNft;
-//   let myToken;
-//   let owner;
-//   let addr1;
-
-//   beforeEach(async function () {
-//     MfNft = await ethers.getContractFactory("MfNft");
-//     myToken = await MfNft.deploy("MyToken", "MFT");
-//     [addr1] = await ethers.getSigners();
-//   });
-//   it("should revert when trying to mint NFT for zero address", async function () {
-//     const [owner, addr1] = await ethers.getSigners();
-//     await expect(myToken.mint(ethers.constants.AddressZero, 1))
-//       .to.be.revertedWith("MfNft: cannot mint a NFT for zero address");
-//   });
-
-//   it('`from` address should be zeroAddress', async () => {
-//     const tokenId = 1;
-//     await myToken.mint(addr1.address, tokenId);
-//     expect(await myToken.ownerOf(tokenId)).to.equal(addr1.address);
-//     expect(await myToken.balanceOf(addr1.address)).to.equal(1);
-//     expect(await myToken.totalSupply()).to.equal(1);
-//   });
-//   it('`to` address should not be zeroAddress', async () => {
-//     expect(await addr1.address)
-//       .to.not.be.equal(ethers.constants.AddressZero)
-//       .to.be.revertedWith("to address cannot be zero");
-//   });
-// });
