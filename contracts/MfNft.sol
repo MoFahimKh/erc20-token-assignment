@@ -325,7 +325,6 @@ contract MfNft is ERC721 {
     }
 
     function _mint(address _to, uint256 _amount) internal {
-        //require(_to != address(0));
         _totalSupply += 1;
         _balances[_to] += 1;
         emit Transfer(address(0), _to, _amount);
